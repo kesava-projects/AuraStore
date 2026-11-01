@@ -17,7 +17,7 @@ export function signToken(user) {
 }
 
 export function setTokenCookie(res, token) {
-  const isProd = ENV.NODE_ENV === 'production';
+  const isProd = ENV.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
   res.cookie(COOKIE_NAME, token, {
     httpOnly: true,
     secure: isProd,
@@ -28,7 +28,7 @@ export function setTokenCookie(res, token) {
 }
 
 export function clearTokenCookie(res) {
-  const isProd = ENV.NODE_ENV === 'production';
+  const isProd = ENV.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
   res.cookie(COOKIE_NAME, '', {
     httpOnly: true,
     secure: isProd,

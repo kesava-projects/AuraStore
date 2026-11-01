@@ -1,4 +1,4 @@
-const BASE_URL = '/api';
+const BASE_URL = process.env.VITE_API_URL;
 
 async function request(endpoint, options = {}) {
   const url = `${BASE_URL}${endpoint}`;

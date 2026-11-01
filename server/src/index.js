@@ -35,8 +35,6 @@ async function startServer() {
   process.on('SIGINT', shutdown);
 }
 
-if (!process.env.VERCEL) {
-  startServer();
-}
+startServer();
 
 export default app;

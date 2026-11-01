@@ -21,7 +21,7 @@ export function setTokenCookie(res, token) {
   res.cookie(COOKIE_NAME, token, {
     httpOnly: true,
     secure: isProd,
-    sameSite: 'lax',
+    sameSite: isProd ? 'none' : 'lax', // 'none' is required for cross-origin cookies between frontend and server on Vercel
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     path: '/',
   });
@@ -32,7 +32,7 @@ export function clearTokenCookie(res) {
   res.cookie(COOKIE_NAME, '', {
     httpOnly: true,
     secure: isProd,
-    sameSite: 'lax',
+    sameSite: isProd ? 'none' : 'lax',
     expires: new Date(0),
     path: '/',
   });

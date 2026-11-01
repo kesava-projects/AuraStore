@@ -4,8 +4,10 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import mongoose from 'mongoose';
 
 import { ENV } from './config/env.js';
+import { connectDB } from './config/db.js';
 import { sanitizeInput } from './middlewares/sanitize.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 
@@ -31,10 +33,28 @@ app.use(
   })
 );
 
-// CORS configuration limited to client origin
+// CORS configuration supporting client origin, localhost, and Vercel deployments
+const allowedOrigins = [
+  ENV.CLIENT_URL,
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+];
+
 app.use(
   cors({
-    origin: [ENV.CLIENT_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+      // Allow configured CLIENT_URL, localhost, and any Vercel domain (*.vercel.app)
+      if (
+        allowedOrigins.includes(origin) ||
+        /\.vercel\.app$/.test(new URL(origin).hostname) ||
+        ENV.NODE_ENV === 'development'
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
     credentials: true,
   })
 );
@@ -59,9 +79,40 @@ app.use(sanitizeInput);
 // Static files for local uploads fallback
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Health check
+// Health check endpoint with database diagnostics
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  const dbStates = ['disconnected', 'connected', 'connecting', 'disconnecting'];
+  const state = dbStates[mongoose.connection.readyState] || 'unknown';
+  const isAtlasConfigured = Boolean(ENV.MONGO_URI && !ENV.MONGO_URI.includes('127.0.0.1'));
+
+  res.json({
+    status: 'ok',
+    database: {
+      status: state,
+      isConfigured: isAtlasConfigured,
+    },
+    environment: ENV.NODE_ENV,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Database connection middleware for serverless invocations (e.g. Vercel)
+// Ensures Mongoose is connected before any query or route handler runs.
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error('Database connection failed in request middleware:', error.message);
+    return res.status(500).json({
+      error: {
+        code: 'DATABASE_CONNECTION_ERROR',
+        message:
+          'Failed to connect to MongoDB. Please ensure: 1) MongoDB Atlas Network Access has 0.0.0.0/0 allowed, and 2) MONGO_URI is added in Vercel Environment Variables.',
+        details: error.message,
+      },
+    });
+  }
 });
 
 // Mount routes

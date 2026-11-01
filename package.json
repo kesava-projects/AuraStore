@@ -1,0 +1,24 @@
+{
+  "name": "mern-ecommerce-app",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -n \"SERVER,CLIENT\" -c \"blue,green\" \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "npm run --prefix server dev",
+    "dev:client": "npm run --prefix client dev",
+    "install:all": "npm install && npm install --prefix server && npm install --prefix client",
+    "seed": "npm run --prefix server seed",
+    "reset-db": "npm run --prefix server reset-db",
+    "test": "npm run test:server && npm run test:client",
+    "test:server": "npm run --prefix server test",
+    "test:client": "npm run --prefix client test",
+    "lint": "eslint server client",
+    "format": "prettier --write \"**/*.{js,jsx,json,css,md}\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "eslint": "^10.14.0",
+    "prettier": "^3.5.3"
+  }
+}

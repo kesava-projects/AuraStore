@@ -27,7 +27,10 @@ const imagesSchema = z.preprocess((val) => {
       const parsed = JSON.parse(trimmed);
       if (Array.isArray(parsed)) return parsed;
     } catch {}
-    return trimmed.split(',').map((s) => s.trim()).filter(Boolean);
+    return trimmed
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
   }
   return val;
 }, z.array(z.string()).optional().default([]));

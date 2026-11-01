@@ -101,14 +101,11 @@ describe('Admin Products API Integration Tests', () => {
   });
 
   it('should return 400 validation error with descriptive message when required fields are missing', async () => {
-    const res = await request(app)
-      .post('/api/admin/products')
-      .set('Cookie', adminCookie)
-      .send({
-        title: '',
-        description: 'Short',
-        price: -5,
-      });
+    const res = await request(app).post('/api/admin/products').set('Cookie', adminCookie).send({
+      title: '',
+      description: 'Short',
+      price: -5,
+    });
 
     expect(res.status).toBe(400);
     expect(res.body.error.code).toBe('VALIDATION_ERROR');
